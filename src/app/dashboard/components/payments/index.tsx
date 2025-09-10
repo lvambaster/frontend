@@ -8,11 +8,11 @@ interface Motoqueiro {
   name: string;
 }
 
-const API_URL = "http://localhost:3333"; // backend Express
+const API_URL = "https://backendadmentregas.vercel.app"; // URL do seu backend no Vercel
 
 export default function Payments() {
   const [motoqueiros, setMotoqueiros] = useState<Motoqueiro[]>([]);
-  const [selectedMotoqueiro, setSelectedMotoqueiro] = useState<number | "">("");
+  const [selectedMotoqueiro, setSelectedMotoqueiro] = useState("");
   const [valorPago, setValorPago] = useState("");
   const [quantidadeEntregas, setQuantidadeEntregas] = useState("");
   const [observacao, setObservacao] = useState("");
@@ -24,6 +24,7 @@ export default function Payments() {
         const res = await fetch(`${API_URL}/bikers`);
         if (!res.ok) throw new Error("Erro ao buscar motoqueiros");
         const data = await res.json();
+        console.log("Motoqueiros carregados:", data); // Debug
         setMotoqueiros(data);
       } catch (err) {
         console.error("Erro ao carregar motoqueiros:", err);
@@ -35,7 +36,7 @@ export default function Payments() {
   // Cadastrar pagamento
   async function handleAddPayment(e: React.FormEvent) {
     e.preventDefault();
-    if (selectedMotoqueiro === "" || !valorPago || !quantidadeEntregas) {
+    if (!selectedMotoqueiro || !valorPago || !quantidadeEntregas) {
       alert("Preencha todos os campos obrigatórios!");
       return;
     }
@@ -59,7 +60,6 @@ export default function Payments() {
         throw new Error(`Erro ${res.status}: ${errorText}`);
       }
 
-      // Cadastro concluído
       alert("Pagamento cadastrado com sucesso!");
 
       // Limpar formulário
@@ -77,16 +77,15 @@ export default function Payments() {
     <div className={styles.container}>
       <h1>Cadastro de Pagamento</h1>
 
-      {/* Formulário de cadastro */}
       <form onSubmit={handleAddPayment} className={styles.form}>
         <select
           value={selectedMotoqueiro}
-          onChange={(e) => setSelectedMotoqueiro(Number(e.target.value))}
+          onChange={(e) => setSelectedMotoqueiro(e.target.value)}
           required
         >
           <option value="">Selecione o motoqueiro</option>
           {motoqueiros.map((m) => (
-            <option key={m.id} value={m.id}>
+            <option key={m.id} value={m.id.toString()}>
               {m.name}
             </option>
           ))}
