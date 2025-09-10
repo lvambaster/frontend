@@ -1,0 +1,38 @@
+.login-page {
+          height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background: linear-gradient(
+            135deg,
+            rgba(230, 0, 35, 0.1),
+            rgba(255, 183, 3, 0.1)
+          );
+        }
+.login-container {
+          text-align: center;
+          padding: 40px 30px;
+        }
+
+.logo {   
+
+         
+         
+         
+          margin-bottom: 0px;
+
+        }
+
+.form input {
+          margin-bottom: 16px;
+        }
+
+.login-links {
+          margin-top: 16px;
+          font-size: 0.9rem;
+        }
+
+.login-links a {
+          color: var(--primary);
+          text-decoration: underline;
+        }

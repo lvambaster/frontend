@@ -1,0 +1,46 @@
+ .button {
+    background-color: #f05454;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+  
+  
+  }
+.header {
+  width: 100%;
+  background-color: #1e1e2f;
+  color: #ffffff;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
+
+  h1 {
+    
+    font-size: 1.5rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+
+  nav {
+    margin-right: 60px;
+    display: flex;
+    gap: 20px;
+
+    a {
+      margin-top: 10px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: #f0c040;
+      }
+    }
+  }
+}
