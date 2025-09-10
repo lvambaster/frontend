@@ -8,7 +8,7 @@ interface Motoqueiro {
   name: string;
 }
 
-const API_URL = "https://backendadmentregas.vercel.app"; // URL do seu backend no Vercel
+const API_URL = "https://backendadmentregas.vercel.app"; // Backend Vercel
 
 export default function Payments() {
   const [motoqueiros, setMotoqueiros] = useState<Motoqueiro[]>([]);
@@ -16,18 +16,23 @@ export default function Payments() {
   const [valorPago, setValorPago] = useState("");
   const [quantidadeEntregas, setQuantidadeEntregas] = useState("");
   const [observacao, setObservacao] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   // Buscar motoqueiros
   useEffect(() => {
     async function fetchMotoqueiros() {
+      setLoading(true);
       try {
         const res = await fetch(`${API_URL}/bikers`);
         if (!res.ok) throw new Error("Erro ao buscar motoqueiros");
         const data = await res.json();
-        console.log("Motoqueiros carregados:", data); // Debug
         setMotoqueiros(data);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Erro ao carregar motoqueiros:", err);
+        setError("Erro ao carregar motoqueiros");
+      } finally {
+        setLoading(false);
       }
     }
     fetchMotoqueiros();
@@ -61,15 +66,13 @@ export default function Payments() {
       }
 
       alert("Pagamento cadastrado com sucesso!");
-
-      // Limpar formulário
       setSelectedMotoqueiro("");
       setValorPago("");
       setQuantidadeEntregas("");
       setObservacao("");
-    } catch (error: any) {
-      console.error("Erro ao cadastrar pagamento:", error.message);
-      alert("Erro ao cadastrar pagamento: " + error.message);
+    } catch (err: any) {
+      console.error("Erro ao cadastrar pagamento:", err);
+      alert("Erro ao cadastrar pagamento: " + err.message);
     }
   }
 
@@ -77,45 +80,51 @@ export default function Payments() {
     <div className={styles.container}>
       <h1>Cadastro de Pagamento</h1>
 
-      <form onSubmit={handleAddPayment} className={styles.form}>
-        <select
-          value={selectedMotoqueiro}
-          onChange={(e) => setSelectedMotoqueiro(e.target.value)}
-          required
-        >
-          <option value="">Selecione o motoqueiro</option>
-          {motoqueiros.map((m) => (
-            <option key={m.id} value={m.id.toString()}>
-              {m.name}
-            </option>
-          ))}
-        </select>
+      {loading ? (
+        <p>Carregando motoqueiros...</p>
+      ) : error ? (
+        <p style={{ color: "red" }}>{error}</p>
+      ) : (
+        <form onSubmit={handleAddPayment} className={styles.form}>
+          <select
+            value={selectedMotoqueiro}
+            onChange={(e) => setSelectedMotoqueiro(e.target.value)}
+            required
+          >
+            <option value="">Selecione o motoqueiro</option>
+            {motoqueiros.map((m) => (
+              <option key={m.id} value={m.id.toString()}>
+                {m.name}
+              </option>
+            ))}
+          </select>
 
-        <input
-          type="number"
-          placeholder="Valor pago"
-          value={valorPago}
-          onChange={(e) => setValorPago(e.target.value)}
-          required
-        />
+          <input
+            type="number"
+            placeholder="Valor pago"
+            value={valorPago}
+            onChange={(e) => setValorPago(e.target.value)}
+            required
+          />
 
-        <input
-          type="number"
-          placeholder="Quantidade de entregas"
-          value={quantidadeEntregas}
-          onChange={(e) => setQuantidadeEntregas(e.target.value)}
-          required
-        />
+          <input
+            type="number"
+            placeholder="Quantidade de entregas"
+            value={quantidadeEntregas}
+            onChange={(e) => setQuantidadeEntregas(e.target.value)}
+            required
+          />
 
-        <input
-          type="text"
-          placeholder="Observação"
-          value={observacao}
-          onChange={(e) => setObservacao(e.target.value)}
-        />
+          <input
+            type="text"
+            placeholder="Observação"
+            value={observacao}
+            onChange={(e) => setObservacao(e.target.value)}
+          />
 
-        <button type="submit">Cadastrar Pagamento</button>
-      </form>
+          <button type="submit">Cadastrar Pagamento</button>
+        </form>
+      )}
     </div>
   );
 }
