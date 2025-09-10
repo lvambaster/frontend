@@ -6,13 +6,13 @@ import styles from "./page.module.scss";
 interface Motoqueiro {
   id: number;
   name: string;
+  telefone?: string;
 }
 
-const API_URL = "https://backendadmentregas.vercel.app"; // Backend Vercel
+const API_URL = "https://backendadmentregas.vercel.app"; // backend Vercel
 
 export default function Payments() {
   const [motoqueiros, setMotoqueiros] = useState<Motoqueiro[]>([]);
-  const [selectedMotoqueiro, setSelectedMotoqueiro] = useState("");
   const [valorPago, setValorPago] = useState("");
   const [quantidadeEntregas, setQuantidadeEntregas] = useState("");
   const [observacao, setObservacao] = useState("");
@@ -38,35 +38,29 @@ export default function Payments() {
     fetchMotoqueiros();
   }, []);
 
-  // Cadastrar pagamento
+  // Cadastrar pagamento para todos os motoqueiros
   async function handleAddPayment(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedMotoqueiro || !valorPago || !quantidadeEntregas) {
+    if (!valorPago || !quantidadeEntregas) {
       alert("Preencha todos os campos obrigatórios!");
       return;
     }
 
     try {
-      const res = await fetch(`${API_URL}/payment`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          motoqueiroId: Number(selectedMotoqueiro),
-          valorPago: Number(valorPago),
-          quantidadeEntregas: Number(quantidadeEntregas),
-          observacao,
-        }),
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Erro ${res.status}: ${errorText}`);
+      for (const m of motoqueiros) {
+        await fetch(`${API_URL}/payment`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            motoqueiroId: m.id,
+            valorPago: Number(valorPago),
+            quantidadeEntregas: Number(quantidadeEntregas),
+            observacao,
+          }),
+        });
       }
 
-      alert("Pagamento cadastrado com sucesso!");
-      setSelectedMotoqueiro("");
+      alert("Pagamentos cadastrados para todos os motoqueiros!");
       setValorPago("");
       setQuantidadeEntregas("");
       setObservacao("");
@@ -85,45 +79,44 @@ export default function Payments() {
       ) : error ? (
         <p style={{ color: "red" }}>{error}</p>
       ) : (
-        <form onSubmit={handleAddPayment} className={styles.form}>
-          <select
-            value={selectedMotoqueiro}
-            onChange={(e) => setSelectedMotoqueiro(e.target.value)}
-            required
-          >
-            <option value="">Selecione o motoqueiro</option>
+        <>
+          <div className={styles.motoqueirosList}>
+            <h2>Motoqueiros cadastrados:</h2>
             {motoqueiros.map((m) => (
-              <option key={m.id} value={m.id.toString()}>
-                {m.name}
-              </option>
+              <div key={m.id} className={styles.motoqueiroCard}>
+                <p><strong>Nome:</strong> {m.name}</p>
+                {m.telefone && <p><strong>Telefone:</strong> {m.telefone}</p>}
+              </div>
             ))}
-          </select>
+          </div>
 
-          <input
-            type="number"
-            placeholder="Valor pago"
-            value={valorPago}
-            onChange={(e) => setValorPago(e.target.value)}
-            required
-          />
+          <form onSubmit={handleAddPayment} className={styles.form}>
+            <input
+              type="number"
+              placeholder="Valor pago"
+              value={valorPago}
+              onChange={(e) => setValorPago(e.target.value)}
+              required
+            />
 
-          <input
-            type="number"
-            placeholder="Quantidade de entregas"
-            value={quantidadeEntregas}
-            onChange={(e) => setQuantidadeEntregas(e.target.value)}
-            required
-          />
+            <input
+              type="number"
+              placeholder="Quantidade de entregas"
+              value={quantidadeEntregas}
+              onChange={(e) => setQuantidadeEntregas(e.target.value)}
+              required
+            />
 
-          <input
-            type="text"
-            placeholder="Observação"
-            value={observacao}
-            onChange={(e) => setObservacao(e.target.value)}
-          />
+            <input
+              type="text"
+              placeholder="Observação"
+              value={observacao}
+              onChange={(e) => setObservacao(e.target.value)}
+            />
 
-          <button type="submit">Cadastrar Pagamento</button>
-        </form>
+            <button type="submit">Cadastrar Pagamento para todos</button>
+          </form>
+        </>
       )}
     </div>
   );
