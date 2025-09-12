@@ -43,7 +43,7 @@ export default function Signup() {
             <input
               type="text"
               name="telefone"
-              placeholder="Telefone (opcional)"
+              placeholder="Telefone"
               className={styles["form input"]}
             />
 
