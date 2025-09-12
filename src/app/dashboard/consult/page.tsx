@@ -17,7 +17,7 @@ interface Pagamento {
   observacao?: string;
 }
 
-const API_URL = "http://localhost:3333";
+const API_URL = "https://backendadmentregas.vercel.app";// ajuste para seu backend
 
 export default function ConsultaPayments() {
   const [motoqueiros, setMotoqueiros] = useState<Motoqueiro[]>([]);
@@ -26,16 +26,29 @@ export default function ConsultaPayments() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+  // Função para pegar o token do cookie ou localStorage
+  function getToken() {
+    const tokenFromCookie = document.cookie.match(/(^| )session=([^;]+)/)?.[2];
+    return tokenFromCookie || localStorage.getItem("token") || "";
+  }
+
   // Buscar motoqueiros
   useEffect(() => {
     async function fetchMotoqueiros() {
       try {
-        const res = await fetch(`${API_URL}/bikers`);
-        if (!res.ok) throw new Error("Erro ao buscar motoqueiros");
+        const token = getToken();
+        if (!token) throw new Error("Usuário não autenticado");
+
+        const res = await fetch(`${API_URL}/bikers`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error(`Erro ao buscar motoqueiros: ${res.status}`);
         const data = await res.json();
         setMotoqueiros(data);
       } catch (err) {
-        console.error("Erro ao carregar motoqueiros:", err);
+        console.error(err);
+        alert("Erro ao carregar motoqueiros");
       }
     }
     fetchMotoqueiros();
@@ -44,13 +57,23 @@ export default function ConsultaPayments() {
   // Buscar pagamentos
   async function fetchPagamentos() {
     try {
+      const token = getToken();
+      if (!token) throw new Error("Usuário não autenticado");
+
       const query = new URLSearchParams();
       if (selectedMotoqueiro) query.append("motoqueiroId", String(selectedMotoqueiro));
       if (startDate) query.append("startDate", startDate);
       if (endDate) query.append("endDate", endDate);
 
-      const res = await fetch(`${API_URL}/payments?${query.toString()}`);
-      if (!res.ok) throw new Error("Erro ao buscar pagamentos");
+      const res = await fetch(`${API_URL}/payments?${query.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Erro ao buscar pagamentos: ${res.status} - ${text}`);
+      }
+
       const data = await res.json();
       setPagamentos(
         data.map((p: Pagamento) => ({
@@ -58,8 +81,34 @@ export default function ConsultaPayments() {
           dataPagamento: new Date(p.dataPagamento).toLocaleDateString("pt-BR"),
         }))
       );
-    } catch (err) {
-      console.error("Erro ao carregar pagamentos:", err);
+    } catch (err: any) {
+      console.error(err.message || err);
+      alert(err.message || "Erro ao carregar pagamentos");
+    }
+  }
+
+  // Excluir pagamento
+  async function handleDeletePayment(paymentId: number) {
+    const confirmDelete = confirm("Tem certeza que deseja excluir este pagamento?");
+    if (!confirmDelete) return;
+
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_URL}/payment/${paymentId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Erro ao excluir pagamento");
+      }
+
+      setPagamentos((prev) => prev.filter((p) => p.id !== paymentId));
+      alert("Pagamento excluído com sucesso!");
+    } catch (err: any) {
+      console.error(err.message || err);
+      alert("Erro ao excluir pagamento: " + (err.message || err));
     }
   }
 
@@ -101,7 +150,7 @@ export default function ConsultaPayments() {
         />
 
         <button type="submit" className={styles.button}>
-          Consultar
+          Filtrar
         </button>
       </form>
 
@@ -114,6 +163,7 @@ export default function ConsultaPayments() {
             <th>Qtd Entregas</th>
             <th>Data</th>
             <th>Observação</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -125,6 +175,14 @@ export default function ConsultaPayments() {
               <td>{p.quantidadeEntregas}</td>
               <td>{p.dataPagamento}</td>
               <td>{p.observacao || "-"}</td>
+              <td>
+                <button
+                  className={styles.deleteButton}
+                  onClick={() => handleDeletePayment(p.id)}
+                >
+                  Excluir
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
